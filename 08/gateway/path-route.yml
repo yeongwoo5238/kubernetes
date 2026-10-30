@@ -1,0 +1,37 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: path-route
+  namespace: gateway-lab
+spec:
+  parentRefs:               # 연결할 Gateway를 지정한다.
+    - name: lab-gateway
+      namespace: gateway-system
+      # kubectl get gateway lab-gateway -n gateway-system \
+      #   -o jsonpath='{.spec.listeners[*].name}{"\n"}' 
+      sectionName: http     # Gateway의 HTTP 리스너를 지정한다.
+  hostnames:
+    - gw.lab.example.com    # 웹요청의 Host 헤더가 일치해야 한다.
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: web         # 백엔드 Service 이름을 지정한다.
+          port: 80          # 백엔드 Service 포트을 지정한다.
+    - matches:
+        - path:
+            type: Exact
+            value: /app
+      backendRefs:
+        - name: web-app
+          port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /login
+      backendRefs:
+        - name: web-login
+          port: 80

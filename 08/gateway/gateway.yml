@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: lab-gateway
+  namespace: gateway-system
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All    # 모든 네임스페이스의 적절한 Route가 이 리스너에 연결 허용
+
+    - name: https
+      protocol: HTTPS                # 443번 포트에서 HTTPS를 수신한다.
+      port: 443
+      hostname: gw.lab.example.com   # HTTPS 리스너가 처리할 호스트 이름을 지정한다.
+      tls:
+        mode: Terminate              # Gateway에서 TLS 암호화를 종료한다.
+        certificateRefs:             # 사용할 인증서를 참조한다.
+          - kind: Secret
+            name: gw-tls
+      allowedRoutes:
+        namespaces:
+          from: All

@@ -1,0 +1,24 @@
+---
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: nginx-rc
+spec:
+  # 개수 보장
+  replicas: 3
+  selector:
+    app: webui
+  template:
+    metadata:
+      name: nginx-pod
+      labels:
+        app: webui
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:1.26
+        ports:
+        - containerPort: 80
+        
+
+    

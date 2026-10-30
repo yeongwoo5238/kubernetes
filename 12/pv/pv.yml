@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv1
+spec:
+  # (ㄱ) 볼륨 정의
+  nfs:                            
+    server: 192.168.10.14
+    path: /nas/k8s
+  # (ㄴ) 볼륨 특성
+  capacity:                      
+    storage: 4Gi
+  volumeMode: Filesystem   # 생략해도 된다.(default), Filesystem|Block
+  accessModes:
+  - ReadWriteOnce          # ReadWriteOnce, ReadWriteMany, ReadOnlyMany, ...
+  - ReadOnlyMany
+  - ReadWriteMany
+  storageClassName: manual
+  persistentVolumeReclaimPolicy: Retain
+

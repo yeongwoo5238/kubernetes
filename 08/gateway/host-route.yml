@@ -1,0 +1,41 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: blue-host-route
+  namespace: gateway-lab
+spec:
+  parentRefs:
+    - name: lab-gateway
+      namespace: gateway-system
+      sectionName: http
+  hostnames:
+    - blue.lab.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: web-blue
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: green-host-route
+  namespace: gateway-lab
+spec:
+  parentRefs:
+    - name: lab-gateway
+      namespace: gateway-system
+      sectionName: http
+  hostnames:
+    - green.lab.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: web-green
+          port: 80

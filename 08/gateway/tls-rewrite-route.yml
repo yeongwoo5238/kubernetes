@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tls-rewrite-route
+  namespace: gateway-lab
+spec:
+  parentRefs:
+    - name: lab-gateway
+      namespace: gateway-system
+      sectionName: https            # HTTPS 리스너에 연결하기 위해 https를 지정
+  hostnames:
+    - gw.lab.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /legacy          # /legacy로 시작하는 웹요청을 대상으로 한다.
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /
+      backendRefs:
+        - name: web                 # TLS을 종료한 Gateway가 요청을 전달할 내부 서비스이다.
+          port: 80

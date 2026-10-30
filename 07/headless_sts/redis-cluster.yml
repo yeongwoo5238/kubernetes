@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+spec:
+  clusterIP: None       # Headless Service 핵심 설정
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    name: redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis-headless   # Headless Service 이름과 연결
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+      - name: config
+        image: redis:7-alpine
+        command: ['sh', '-c']
+        # redis-0은 Master로 동작, redis-1/2는 redis-0을 바라보는 Replica로 설정
+        args:
+        - |
+          HOSTNAME=$(hostname)
+          if [ "$HOSTNAME" = "redis-0" ]; then
+            echo "Building Master Config"
+            cp /readonly-config/redis.conf /data/redis.conf
+          else
+            echo "Building Replica Config for $HOSTNAME"
+            echo "replicaof redis-0.redis-headless.default.svc.cluster.local 6379" > /data/redis.conf
+            cat /readonly-config/redis.conf >> /data/redis.conf
+          fi
+        volumeMounts:
+        - name: config
+          mountPath: /readonly-config
+        - name: data
+          mountPath: /data
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command: ["redis-server", "/data/redis.conf"]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
+      - name: data
+        emptyDir: {}
